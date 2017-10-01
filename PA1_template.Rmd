@@ -7,19 +7,120 @@ output:
 
 
 ## Loading and preprocessing the data
+Loading activity.csv file into data frame .We will need to convert date column to proper date format. We cann use as.date function for this.
 
+```{r loaddata}
+
+rep_dta<-read.csv("activity.csv")
+rep_dta$date<-as.Date(as.character(rep_dta$date))
+```
 
 
 ## What is mean total number of steps taken per day?
 
+Using tapply Funciton to calculate Aberage steps per day. Then we can use host function to show histogram.
 
+```{r calstepsperday}
+steps_per_day<-tapply(rep_dta$steps,rep_dta$date,FUN=sum,na.rm=TRUE)
+
+hist(steps_per_day,ylab="Day",col="green",breaks = 20)
+
+```
+
+Mean Total Number of steps day 
+```{r meanstesperday}
+steps_per_day_mean<-tapply(rep_dta$steps,rep_dta$date,FUN=mean,na.rm=TRUE)
+
+print(steps_per_day_mean)
+
+
+```
+Median Total Number of steps day 
+```{r medianstepsperday}
+steps_per_day_median<-tapply(rep_dta$steps,rep_dta$date,FUN=median,na.rm=TRUE)
+
+print(steps_per_day_median)
+
+
+```
 
 ## What is the average daily activity pattern?
 
+We can use tapply function to calculate Average no of steps for each 5 min interval .We stored thsis data into new variable interval_dta. We can use the same to plot .
+```{r dailyactivitypattern}
 
+interval_dta<-tapply(rep_dta$steps,rep_dta$interval,FUN=mean,na.rm=T)
+plot(interval_dta,xlab="5 min interval", ylab="Avg steps taken ",main="Avg Steps taken by each 5 min interval")
 
+```
 ## Imputing missing values
+
+Total Number of Missing values in dataset
+```{r missingvalues}
+
+sum(is.na(rep_dta))
+
+
+```
+
+Creating new dataset with  missing values filled 
+
+```{r cleardataset}
+new_dta<-rep_dta
+new_dta[is.na(new_dta$steps),1]<-mean(new_dta$steps,na.rm = TRUE)
+steps_per_day_new<-tapply(new_dta$steps,new_dta$date,FUN=sum)
+```
+Histgram with new dataset
+
+```{r histnew}
+hist(steps_per_day_new,ylab="Day",col="green",breaks = 20)
+
+```
+
+
+Mean Total Number of steps day for new dataset
+
+```{r meanstesperdaynew}
+steps_per_day_mean_new<-tapply(new_dta$steps,new_dta$date,FUN=mean,na.rm=TRUE)
+
+print(steps_per_day_mean_new)
+
+
+```
+Median Total Number of steps day for new dataset
+```{r medianstepsperdaynew}
+steps_per_day_median_new<-tapply(new_dta$steps,new_dta$date,FUN=median,na.rm=TRUE)
+
+print(steps_per_day_median_new)
+
+
+```
+
+*Replacing Missing values did affect the meaan and median of datasets. With replacing NA  with mean ,count of zero values reduced .data is now normall distributed. 
 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+We can seperate data with the help of weekdays function . We have added one more column as Day to dataset to show whether it is weekday or weekend.
+
+We can plot two line plots seperatly and see comparison between two categories.
+
+```{r compareweekdayweekend}
+new_dta$day<-weekdays(new_dta$date)
+new_dta[new_dta$day=="Monday"|new_dta$day=="Tuesday"|new_dta$day=="Wednesday"|new_dta$day=="Thursday"|new_dta$day=="Friday",4]<-"Weekday"
+new_dta[new_dta$day=="Sunday"|new_dta$day=="Saturday",4]<-"Weekend"
+wkd<-new_dta[new_dta$day=="Weekday",]
+wkn<-new_dta[new_dta$day=="Weekend",]
+
+interval_dta_weekday<-tapply(wkd$steps,wkd$interval,FUN=mean,na.rm=T)
+
+
+interval_dta_weekend<-tapply(wkn$steps,wkn$interval,FUN=mean,na.rm=T)
+par(mfrow=c(2,1),mar=c(2,4,2,2))
+plot(interval_dta_weekend,type="l",main="Weekend",xlab="Interval",ylab="Number of Steps")
+plot(interval_dta_weekday,type="l",main="Weekday",xlab="Interval",ylab="Number of Steps")
+
+```
+
+
+
